@@ -1,12 +1,23 @@
 import { formatDate, getBlogPosts } from 'app/blog/utils'
 import Link from 'next/link'
 
-export function BlogPosts() {
+export function RecentPosts() {
+  // only three latest posts
   let allBlogs = getBlogPosts()
+  let recentBlogs = allBlogs.slice(0, 3)
+
 
   return (
-    <div>
-      {allBlogs
+    <div className='py-6'>
+      <div className='flex items-center justify-between'>
+        <h1 className="mb-3 text-xl font-bold tracking-tighter">
+          Recent posts ( {allBlogs.length} )
+        </h1>
+        <Link href='/blog' className="mb-3 text-xl font-bold tracking-tighter">
+          See all posts
+        </Link>
+      </div>
+      {recentBlogs
         .sort((a, b) => {
           if (
             new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)

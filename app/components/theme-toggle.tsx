@@ -1,5 +1,6 @@
 'use client'
 
+import { MoonIcon, SunIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
@@ -14,10 +15,14 @@ export function ThemeToggle() {
     return (
         <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-            className="p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="py-2 rounded-lg"
             aria-label="Toggle theme"
         >
-            {resolvedTheme === 'dark' ? '🌞' : '🌙'}
+            {resolvedTheme === 'dark' ? (
+                <SunIcon size={22} className="text-yellow-400" />
+            ) : (
+                <MoonIcon size={22} className="text-blue-700" />
+            )}
         </button>
     )
 }
