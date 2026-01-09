@@ -16,35 +16,43 @@ function ArrowIcon() {
 }
 
 export default function Footer() {
+
+  const links = [
+    {
+      name: "linkedIn",
+      url: "https://id.linkedin.com/in/muhammad-reza-elang-erlangga-1b836715b"
+    },
+    {
+      name: "github",
+      url: "https://github.com/elangreza"
+    },
+    {
+      name: "view source",
+      url: "https://github.com/elangreza/elangreza.github.io"
+    }
+  ]
+
   return (
-    <footer className="mb-16">
-      <ul className="font-sm mt-8 flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
-        <li>
-          <a
-            className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://github.com/elangreza"
-          >
-            <ArrowIcon />
-            <p className="ml-2 h-7">github</p>
-          </a>
-        </li>
-        <li>
-          <a
-            className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
-            rel="noopener noreferrer"
-            target="_blank"
-            href="https://github.com/elangreza/blog"
-          >
-            <ArrowIcon />
-            <p className="ml-2 h-7">view source</p>
-          </a>
-        </li>
+    <footer className="mb-16 pointer-events-auto" >
+      <h1 className="mb-3 text-xl font-bold tracking-tighter">Visit my links</h1>
+      <ul className="font-sm flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
+        {links.map((l) => (
+          <li key={l.name}>
+            <a
+              className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
+              rel="noopener noreferrer"
+              target="_blank"
+              href={l.url || '#'}
+            >
+              <ArrowIcon />
+              <p className="ml-2 h-7">{l.name}</p>
+            </a>
+          </li>
+        ))}
       </ul>
       <p className="mt-8 text-neutral-600 dark:text-neutral-300">
-        © {new Date().getFullYear()} MIT Licensed
+        elangreza © {new Date().getFullYear()}
       </p>
-    </footer>
+    </footer >
   )
 }

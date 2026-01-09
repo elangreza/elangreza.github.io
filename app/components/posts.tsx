@@ -1,11 +1,16 @@
-import Link from 'next/link'
 import { formatDate, getBlogPosts } from 'app/blog/utils'
+import Link from 'next/link'
 
 export function BlogPosts() {
   let allBlogs = getBlogPosts()
 
   return (
     <div>
+      <h1 className="mb-3 text-xl font-bold tracking-tighter">
+        <Link href={"/blog"} className='cursor-pointer'>
+          Blogs
+        </Link>
+      </h1>
       {allBlogs
         .sort((a, b) => {
           if (
