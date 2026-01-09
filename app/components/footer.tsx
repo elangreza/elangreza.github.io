@@ -18,7 +18,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="my-32 pointer-events-auto" >
+    <footer className="py-8 mt-auto pointer-events-auto">
       {/* <hr className="my-6" /> */}
       {/* <h1 className="mb-3 text-xl font-bold tracking-tighter">Visit my links</h1> */}
       <div className="flex justify-center">
