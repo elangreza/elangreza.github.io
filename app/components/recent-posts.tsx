@@ -13,7 +13,7 @@ export function RecentPosts() {
         <h1 className="mb-3 text-xl font-bold tracking-tighter">
           Recent posts ( {allBlogs.length} )
         </h1>
-        <Link href='/blog' className="mb-3 text-xl font-bold tracking-tighter">
+        <Link href='/blog' className="mb-3 text-xl tracking-tighter transition-all text-blue-500 dark:text-blue-500 duration-300 hover:text-blue-600 hover:dark:text-blue-400 hover:underline flex align-middle relative py-1 cursor-pointer">
           See all posts
         </Link>
       </div>

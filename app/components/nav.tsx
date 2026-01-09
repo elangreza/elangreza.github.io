@@ -8,6 +8,12 @@ const navItems = {
   '/blog': {
     name: 'blog',
   },
+  '/portfolio': {
+    name: 'portfolio',
+  },
+  '/contact': {
+    name: 'contact',
+  },
 }
 
 export function Navbar() {
@@ -18,13 +24,13 @@ export function Navbar() {
           className="flex flex-row items-center justify-between relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
           id="nav"
         >
-          <div className="flex flex-row space-x-4 px-2">
+          <div className="flex flex-row space-x-6 px-2">
             {Object.entries(navItems).map(([path, { name }]) => {
               return (
                 <Link
                   key={path}
                   href={path}
-                  className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex align-middle relative py-1  "
+                  className="transition-all text-blue-500 dark:text-blue-500 text-lg hover:text-xl duration-300 hover:text-blue-600 hover:dark:text-blue-400 hover:underline flex align-middle relative py-1"
                 >
                   {name}
                 </Link>

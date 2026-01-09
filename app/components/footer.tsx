@@ -27,7 +27,7 @@ export default function Footer() {
           {links.map((l) => (
             <li key={l.name}>
               <a
-                className="flex items-center transition-all hover:text-neutral-800 dark:hover:text-neutral-100"
+                className="flex items-center transition-all text-blue-500 dark:text-blue-500 duration-300 hover:text-blue-600 hover:dark:text-blue-400 hover:underline align-middle relative py-1 cursor-pointer"
                 rel="noopener noreferrer"
                 target="_blank"
                 href={l.url || '#'}
