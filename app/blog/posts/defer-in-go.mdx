@@ -1,23 +1,82 @@
 ---
-title: "Defer in Go"
+title: "Tricky Go interview question: Combining Defer and Named Return Values"
 publishedAt: "2026-01-10"
-summary: "deep dive into defer in Go"
+summary: "A deep dive into the tricky interaction between defer and named return values in Go."
 active: "true"
 tags: golang,defer
 ---
 
-Defer is a keyword in Go that is used to delay the execution of a function until the surrounding function returns.
+During a recent Go interview in 2025, I encountered a tricky question about `defer` and named return values. It's a classic "gotcha" that tests your understanding of Go's execution order.
+
+The question was similar to this:
 
 ```go
+package main
+
+import "fmt"
+
 func main() {
-	defer fmt.Println("deferred")
-	fmt.Println("hello")
+	fmt.Println("Result:", GuessTheResponse())
+}
+
+func GuessTheResponse() (result int) {
+	defer func() {
+		result = result * 2
+	}()
+	return 2
 }
 ```
 
-the output will be:
+## **What will be the output?**
 
+At first glance, it's easy to assume the answer is `2`. My initial intuition was that once the `return` statement is reached, the return value is locked in and cannot be modified, especially since the function combines a named return value with an explicit return statement.
+
+However, that answer is **wrong**.
+
+## The Explanation
+
+The correct output is `4`.
+
+To understand why, we need to look at how Go handles `return` statements combined with named return values and `defer`.
+
+1.  **Assignment**: The `return 2` statement first assigns the value `2` to the named return variable `result`.
+2.  **Defer Execution**: Before the function actually returns control to the caller, any `defer` functions are executed. In this case, the anonymous function runs: `result = result * 2`. Since `result` was `2`, it now becomes `4`.
+3.  **Return**: Finally, the function returns the current value of `result`, which is `4`.
+
+This behavior can be confusing because the `return` statement is not a single atomic operation when it involves named return values and defers.
+
+## Best Practices
+
+While named return values are a powerful feature, using them to modify return values inside a `defer` block can make code difficult to read and debug. It's generally considered best practice to:
+
+1.  **Use named return values for documentation or interface implementation**: They clarify what the function returns (e.g., `func Parse() (parsedData string, err error)`).
+2.  **Use them for "naked" returns**: In short functions, a simple `return` statement (without arguments) can reduce verbosity.
+3.  **Avoid side effects**: Be cautious when modifying return values in `defer`, unless you are specifically handling error wrapping or cleanup logic.
+4.  **Avoid mixing named and unnamed returns**: Consistency prevents confusion; don't mix styles arbitrarily in related functions or interfaces.
+
+For clarity, explicit returns are often preferred:
+
+```go
+// Clearer approach if side effects aren't needed
+func GuessTheResponse() int {
+	return 2 * 2
+}
+
+// If you really need a named return value
+func GuessTheResponseNamed() (res int) {
+	res = 2
+	return // can be omitted, but explicit return is clearer
+}
+
+// Avoid this pattern: confusing use of named return coupled with defer side effects
+func GuessTheResponseWithSideEffect() (res int) {
+	defer func() {
+		res = res * 2
+	}()
+	return 2
+}
 ```
-hello
-deferred
-```
+
+If you must use named returns, ensure the logic is straightforward.
+
+**Lesson learned:** Never trust your first intuition on tricky language features—always verify the execution order!
