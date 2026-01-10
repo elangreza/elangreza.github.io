@@ -16,44 +16,63 @@ export function FilteredPosts({
 }) {
     const searchParams = useSearchParams()
     const tagParam = searchParams.get('tag')
-    const [selectedTag, setSelectedTag] = useState<string | null>(tagParam)
 
-    // Sync state with URL param on initial load or navigation
-    if (tagParam !== selectedTag) {
-        setSelectedTag(tagParam)
+    // Parse initial tags from comma-separated string
+    const initialTags = tagParam ? tagParam.split(',') : []
+    const [selectedTags, setSelectedTags] = useState<string[]>(initialTags)
+
+    // Sync state with URL param on navigation
+    if (tagParam && tagParam !== selectedTags.join(',')) {
+        setSelectedTags(tagParam.split(','))
+    } else if (!tagParam && selectedTags.length > 0) {
+        setSelectedTags([])
     }
 
-    const filteredPosts = selectedTag
-        ? posts.filter((post) => post.metadata.tags?.includes(selectedTag))
+    const filteredPosts = selectedTags.length > 0
+        ? posts.filter((post) => selectedTags.some((tag) => post.metadata.tags?.includes(tag)))
         : posts
+
+    const toggleTag = (tag: string) => {
+        if (selectedTags.includes(tag)) {
+            return selectedTags.filter((t) => t !== tag)
+        } else {
+            return [...selectedTags, tag]
+        }
+    }
 
     return (
         <div>
             <div className="flex flex-wrap gap-2 mb-8">
                 <Link
                     href="/blog"
-                    className={twMerge(`px-3 py-1 rounded-full text-sm  `, !selectedTag
+                    className={twMerge(`px-3 py-1 rounded-full text-sm transition-colors`, selectedTags.length === 0
                         ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
-                        : 'bg-gray-100   text-gray-100 dark:bg-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700')}
+                        : 'bg-gray-100 text-gray-900 dark:bg-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700')}
                 >
                     All
                 </Link>
-                {tags.map((tag) => (
-                    <Link
-                        key={tag}
-                        href={selectedTag === tag ? '/blog' : `/blog?tag=${tag}`}
-                        className={twMerge(`px-3 py-1 rounded-full text-sm  `, selectedTag === tag
-                            ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
-                            : 'bg-gray-100   text-gray-100 dark:bg-neutral-800   dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-700')}
-                    >
-                        {tag}
-                    </Link>
-                ))}
+                {tags.map((tag) => {
+                    const newTags = toggleTag(tag)
+                    const href = newTags.length > 0 ? `/blog?tag=${newTags.join(',')}` : '/blog'
+                    const isActive = selectedTags.includes(tag)
+
+                    return (
+                        <Link
+                            key={tag}
+                            href={href}
+                            className={twMerge(`px-3 py-1 rounded-full text-sm transition-colors`, isActive
+                                ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
+                                : 'bg-gray-100 text-gray-900 dark:bg-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700')}
+                        >
+                            {tag}
+                        </Link>
+                    )
+                })}
             </div>
 
-            {selectedTag && (
+            {selectedTags.length > 0 && (
                 <p className="mb-8 text-neutral-600 dark:text-neutral-400">
-                    Viewing posts tagged: <span className="font-semibold">{selectedTag}</span>
+                    Viewing posts tagged: <span className="font-semibold">{selectedTags.join(', ')}</span>
                 </p>
             )}
 
