@@ -1,7 +1,6 @@
 import { MoveUpRight } from "lucide-react"
 
 export default function Footer() {
-
   const links = [
     {
       name: "linkedIn",
@@ -19,10 +18,7 @@ export default function Footer() {
 
   return (
     <footer className="py-8 mt-auto pointer-events-auto">
-      {/* <hr className="my-6" /> */}
-      {/* <h1 className="mb-3 text-xl font-bold tracking-tighter">Visit my links</h1> */}
       <div className="flex justify-center">
-
         <ul className="font-sm flex flex-col space-x-0 space-y-2 text-neutral-600 md:flex-row md:space-x-4 md:space-y-0 dark:text-neutral-300">
           {links.map((l) => (
             <li key={l.name}>

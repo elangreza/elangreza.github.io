@@ -6,6 +6,8 @@ type Metadata = {
   publishedAt: string
   summary: string
   image?: string
+  tags?: string[]
+  active: boolean
 }
 
 function parseFrontmatter(fileContent: string) {
@@ -20,7 +22,13 @@ function parseFrontmatter(fileContent: string) {
     let [key, ...valueArr] = line.split(': ')
     let value = valueArr.join(': ').trim()
     value = value.replace(/^['"](.*)['"]$/, '$1') // Remove quotes
-    metadata[key.trim() as keyof Metadata] = value
+    if (key === 'tags') {
+      metadata[key.trim()] = value.split(',').map((tag) => tag.trim())
+    } else if (key === 'active') {
+      metadata[key.trim()] = value === 'true'
+    } else {
+      metadata[key.trim()] = value
+    }
   })
 
   return { metadata: metadata as Metadata, content }
@@ -37,7 +45,10 @@ function readMDXFile(filePath) {
 
 function getMDXData(dir) {
   let mdxFiles = getMDXFiles(dir)
-  return mdxFiles.map((file) => {
+  return mdxFiles.filter((file) => {
+    let { metadata } = readMDXFile(path.join(dir, file))
+    return metadata.active
+  }).map((file) => {
     let { metadata, content } = readMDXFile(path.join(dir, file))
     let slug = path.basename(file, path.extname(file))
 
@@ -49,8 +60,13 @@ function getMDXData(dir) {
   })
 }
 
-export function getBlogPosts() {
-  return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts'))
+export function getBlogPosts(tags?: string[]) {
+  return getMDXData(path.join(process.cwd(), 'app', 'blog', 'posts')).filter((post) => {
+    if (!tags) {
+      return true
+    }
+    return tags.some((tag) => post.metadata.tags?.includes(tag))
+  })
 }
 
 export function formatDate(date: string, includeRelative = false) {

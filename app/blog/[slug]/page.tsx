@@ -1,6 +1,7 @@
 import { formatDate, getBlogPosts } from 'app/blog/utils'
 import { CustomMDX } from 'app/components/mdx'
 import { baseUrl } from 'app/url'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 export async function generateStaticParams() {
@@ -89,10 +90,17 @@ export default async function Blog({ params }) {
       <h1 className="title font-semibold text-2xl tracking-tighter">
         {post.metadata.title}
       </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
+      <div className="flex justify-between items-center my-2 text-sm">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {formatDate(post.metadata.publishedAt)}
         </p>
+      </div>
+      <div className="flex items-center space-x-4 mb-6">
+        {post.metadata.tags?.map((tag, index) => (
+          <Link href={`/blog?tag=${tag}`} key={index} className="text-sm text-gray-100 bg-gray-800 px-2 py-1 rounded-lg">
+            #{tag}
+          </Link>
+        ))}
       </div>
       <article className="prose">
         <CustomMDX source={post.content} />
