@@ -63,7 +63,6 @@ export default async function Blog({ params }) {
     notFound()
   }
 
-
   return (
     <section>
       <script
@@ -96,7 +95,7 @@ export default async function Blog({ params }) {
           {formatDate(post.metadata.publishedAt)}
         </p>
       </div>
-      <div className="flex items-center space-x-4 mb-6">
+      <div className="flex items-center space-x-2 mb-6">
         {post.metadata.tags?.map((tag, index) => (
           <Link href={`/blog?tag=${tag}`} key={index} className="text-sm text-gray-100 bg-gray-800 px-2 py-1 rounded-lg">
             #{tag}
