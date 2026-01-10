@@ -1,13 +1,19 @@
 import fs from 'fs'
 import path from 'path'
 
-type Metadata = {
+export type Metadata = {
   title: string
   publishedAt: string
   summary: string
   image?: string
   tags?: string[]
   active: boolean
+}
+
+export type Post = {
+  metadata: Metadata
+  slug: string
+  content: string
 }
 
 function parseFrontmatter(fileContent: string) {
@@ -69,38 +75,26 @@ export function getBlogPosts(tags?: string[]) {
   })
 }
 
-export function formatDate(date: string, includeRelative = false) {
-  let currentDate = new Date()
-  if (!date.includes('T')) {
-    date = `${date}T00:00:00`
-  }
-  let targetDate = new Date(date)
 
-  let yearsAgo = currentDate.getFullYear() - targetDate.getFullYear()
-  let monthsAgo = currentDate.getMonth() - targetDate.getMonth()
-  let daysAgo = currentDate.getDate() - targetDate.getDate()
+function getMDXTags(dir) {
+  let mdxFiles = getMDXFiles(dir)
+  return mdxFiles.filter((file) => {
+    let { metadata } = readMDXFile(path.join(dir, file))
+    return metadata.active || []
+  }).map((file) => {
+    let { metadata } = readMDXFile(path.join(dir, file))
+    return metadata.tags || []
+  })
+}
 
-  let formattedDate = ''
-
-  if (yearsAgo > 0) {
-    formattedDate = `${yearsAgo}y ago`
-  } else if (monthsAgo > 0) {
-    formattedDate = `${monthsAgo}mo ago`
-  } else if (daysAgo > 0) {
-    formattedDate = `${daysAgo}d ago`
-  } else {
-    formattedDate = 'Today'
-  }
-
-  let fullDate = targetDate.toLocaleString('en-us', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+export function getBlogPostTags(): string[] {
+  let tags = getMDXTags(path.join(process.cwd(), 'app', 'blog', 'posts')).flat()
+  let tagsMap = new Map<string, boolean>()
+  tags.forEach((tag) => {
+    tagsMap.set(tag, true)
   })
 
-  if (!includeRelative) {
-    return fullDate
-  }
-
-  return `${fullDate} (${formattedDate})`
+  return Array.from(tagsMap.keys()).sort()
 }
+
+

@@ -1,0 +1,23 @@
+---
+title: "Defer in Go"
+publishedAt: "2026-01-10"
+summary: "deep dive into defer in Go"
+active: "true"
+tags: golang,defer
+---
+
+Defer is a keyword in Go that is used to delay the execution of a function until the surrounding function returns.
+
+```go
+func main() {
+	defer fmt.Println("deferred")
+	fmt.Println("hello")
+}
+```
+
+the output will be:
+
+```
+hello
+deferred
+```

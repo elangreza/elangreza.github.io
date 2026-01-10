@@ -1,4 +1,5 @@
-import { formatDate, getBlogPosts } from 'app/blog/utils'
+import { formatDate } from 'app/blog/date-utils'
+import { getBlogPosts } from 'app/blog/utils'
 import { CustomMDX } from 'app/components/mdx'
 import { baseUrl } from 'app/url'
 import Link from 'next/link'
