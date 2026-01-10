@@ -7,7 +7,6 @@ import { notFound } from 'next/navigation'
 
 export async function generateStaticParams() {
   let posts = getBlogPosts()
-  console.log(posts)
 
   return posts.map((post) => ({
     slug: post.slug,
