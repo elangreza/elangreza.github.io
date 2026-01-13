@@ -75,6 +75,10 @@ html.dark .text-neutral-300 {
   color: #d4d4d4;
 }
 
+html.dark .text-neutral-800 {
+  color: #e5e5e5;
+}
+
 /* Blog post titles */
 html .text-neutral-900 {
   color: #171717;
