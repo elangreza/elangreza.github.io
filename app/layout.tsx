@@ -23,6 +23,27 @@ export const metadata: Metadata = {
     siteName: 'My Portfolio',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: `${baseUrl}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: 'My Portfolio',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'My Portfolio',
+    description: 'This is my portfolio.',
+    images: [
+      {
+        url: `${baseUrl}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: 'My Portfolio',
+      },
+    ],
   },
   robots: {
     index: true,

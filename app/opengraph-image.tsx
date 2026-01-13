@@ -1,37 +1,25 @@
 import { ImageResponse } from 'next/og'
-import { getBlogPosts } from '../utils'
 
+// Image metadata
 export const alt = 'Elang Reza'
 export const size = {
     width: 1200,
     height: 630,
 }
+
 export const contentType = 'image/png'
 
-export async function generateStaticParams() {
-    let posts = getBlogPosts()
+export const dynamic = "force-static"
 
-    return posts.map((post) => ({
-        slug: post.slug,
-    }))
-}
-
-export default async function Image({
-    params,
-}: {
-    params: Promise<{ slug: string }>
-}) {
-    const { slug } = await params
-    let post = getBlogPosts().find((post) => post.slug === slug)
-    if (!post) {
-        return
-    }
+// Image generation
+export default async function Image() {
 
     return new ImageResponse(
         (
+            // ImageResponse JSX element
             <div
                 style={{
-                    fontSize: 48,
+                    fontSize: 128,
                     background: 'white',
                     width: '100%',
                     height: '100%',
@@ -40,10 +28,13 @@ export default async function Image({
                     justifyContent: 'center',
                 }}
             >
-                {post.metadata.title}
+                Elang Reza
             </div>
         ),
+        // ImageResponse options
         {
+            // For convenience, we can re-use the exported opengraph-image
+            // size config to also set the ImageResponse's width and height.
             ...size,
         }
     )
