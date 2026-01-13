@@ -1,10 +1,27 @@
 import { getBlogPosts, getBlogPostTags } from 'app/blog/utils'
 import { FilteredPosts } from 'app/components/filtered-posts'
+import { baseUrl } from 'app/url'
 import { Suspense } from 'react'
 
 export const metadata = {
   title: 'Blog',
   description: 'Read my blog.',
+  openGraph: {
+    title: 'Blog',
+    description: 'Read my blog.',
+    type: 'website',
+    url: `${baseUrl}/blog`,
+    siteName: 'Elang Reza',
+    locale: 'en_US',
+    images: [
+      {
+        url: `${baseUrl}/blog/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: 'Elang Reza',
+      },
+    ],
+  },
 }
 
 export default function Page() {

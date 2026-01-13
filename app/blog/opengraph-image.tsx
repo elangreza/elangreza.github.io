@@ -29,7 +29,7 @@ export default async function Image() {
                     textAlign: 'center'
                 }}
             >
-                Elang Reza
+                Elang Reza | blog
             </div>
         ),
         // ImageResponse options
