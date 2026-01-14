@@ -5,7 +5,11 @@ const projects = [
         title: 'Bluebird Dispatch Squad',
         client: "DikshaTek (for PT Bluebird)",
         role: "Contract - Backend Golang Developer",
-        period: "February 2025 - July 2025",
+
+        startMonth: "February",
+        startYear: "2025",
+        endMonth: "July",
+        endYear: "2025",
         description: "Migrated legacy services to Go modules and improved system observability and stability.",
         techStack: ["Go", "gRPC", "REST", "MySQL", "Redis", "RabbitMQ", "YAML"],
         tasks: [
@@ -21,7 +25,11 @@ const projects = [
         title: '10x App',
         client: "Xquisite AI",
         role: "Freelance - Backend Developer",
-        period: "July 2024 - November 2024",
+
+        startMonth: "July",
+        startYear: "2024",
+        endMonth: "November",
+        endYear: "2024",
         description: "Developed backend features for a sales module and approval workflows.",
         techStack: ["Go Fiber", "REST", "PostgreSQL", "YAML design"],
         tasks: [
@@ -35,7 +43,11 @@ const projects = [
         title: 'RCS (Regulatory Compliance System) Rebuild',
         client: "Gits Indonesia (for hukumonline.com)",
         role: "Freelance - Backend Developer",
-        period: "October 2023 - April 2024",
+
+        startMonth: "October",
+        startYear: "2023",
+        endMonth: "April",
+        endYear: "2024",
         description: "Rebuilt backend systems for compliance and notification services.",
         techStack: ["Go", "NATS", "WebSocket", "gRPC", "JWT", "S3", "Gin-gonic"],
         tasks: [
@@ -50,7 +62,11 @@ const projects = [
         title: 'Bravo LOS Platform',
         client: "BFI Finance",
         role: "Full Time - Backend Developer",
-        period: "July 2022 - September 2023",
+
+        startMonth: "July",
+        startYear: "2022",
+        endMonth: "September",
+        endYear: "2023",
         description: "Developed APIs and workflows for a Loan Origination System.",
         techStack: ["Go", "gRPC", "Java", "BPMN Camunda", "RabbitMQ"],
         tasks: [
@@ -64,7 +80,11 @@ const projects = [
         title: 'Mapan Pulsa Plus and Paylater',
         client: "PT Sagara Technology for (PT Mapan)",
         role: "Freelance - Backend Developer",
-        period: "April 2022 - June 2022",
+
+        startMonth: "April",
+        startYear: "2022",
+        endMonth: "June",
+        endYear: "2022",
         description: "Designed core APIs for order processing and paylater systems.",
         techStack: ["Go", "PostgreSQL", "Apache Kafka"],
         tasks: [
@@ -78,7 +98,11 @@ const projects = [
         title: 'Swadeli App',
         client: "PT Sagara Technology for (Swadeli)",
         role: "Freelance - Backend Developer",
-        period: "January 2022 - April 2022",
+
+        startMonth: "January",
+        startYear: "2022",
+        endMonth: "April",
+        endYear: "2022",
         description: "Implemented backend architecture for back-office and mobile APIs.",
         techStack: ["Go (Fiber)", "PostgreSQL"],
         tasks: [
@@ -91,7 +115,11 @@ const projects = [
         title: 'Mapan Pulsa',
         client: "PT Sagara Technology for (PT Mapan)",
         role: "Freelance - Backend Developer",
-        period: "Dec 2021 - Jan 2022, Feb 2022",
+
+        startMonth: "December",
+        startYear: "2021",
+        endMonth: "February",
+        endYear: "2022",
         description: "Created analytics and banner APIs and integrated notifications.",
         techStack: ["Go", "Apache Kafka", "PostgresSQL"],
         tasks: [
@@ -105,7 +133,11 @@ const projects = [
         title: 'Eclis.id Platform',
         client: "Eclis.id",
         role: "Full Time - Fullstack Developer",
-        period: "May 2021 - June 2022",
+
+        startMonth: "May",
+        startYear: "2021",
+        endMonth: "June",
+        endYear: "2022",
         description: "Built document processing microservices and migrated web platforms.",
         techStack: ["React.js", "Next.js", "Python", "Go",],
         tasks: [
@@ -118,7 +150,11 @@ const projects = [
         title: 'AAM Abbott Website',
         client: "FR Web Dev",
         role: "Freelance - Project Lead",
-        period: "March 2021 - May 2021",
+
+        startMonth: "March",
+        startYear: "2021",
+        endMonth: "May",
+        endYear: "2021",
         description: "Led the team and managed business logic implementation.",
         techStack: ["Project Management"],
         tasks: [
@@ -131,7 +167,11 @@ const projects = [
         title: 'Riseloka Admin Website',
         client: "Riseloka Indonesia",
         role: "Freelance - Frontend Developer",
-        period: "December 2020 - May 2021",
+
+        startMonth: "December",
+        startYear: "2020",
+        endMonth: "May",
+        endYear: "2021",
         description: "Developed frontend architecture for admin dashboard.",
         techStack: ["React.js", "Next.js", "React Hooks"],
         tasks: [
@@ -145,7 +185,11 @@ const projects = [
         title: 'Kasumi Driver Management',
         client: "Boston Makmur Gemilang And Hampton Solution",
         role: "Full Time - Frontend Developer",
-        period: "October 2019 - January 2021",
+
+        startMonth: "October",
+        startYear: "2019",
+        endMonth: "January",
+        endYear: "2021",
         description: "Developed frontend for driver management and mobile apps.",
         techStack: ["React.js", "Next.js", "React Native"],
         tasks: [
@@ -167,7 +211,11 @@ export function getProjectsSummary() {
         title: project.title,
         client: project.client,
         role: project.role,
-        period: project.period,
+
         description: project.description,
+        startMonth: project.startMonth,
+        startYear: project.startYear,
+        endMonth: project.endMonth,
+        endYear: project.endYear,
     }))
 }

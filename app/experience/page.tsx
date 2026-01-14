@@ -39,7 +39,7 @@ export default function Page() {
                                     <p className="text-neutral-600 dark:text-neutral-400">{project.role} at <b className="font-bold text-neutral-800 dark:text-neutral-200">{project.client}</b></p>
                                 </div>
                                 <span className="text-sm text-neutral-500 dark:text-neutral-500 tabular-nums mt-2 md:mt-0">
-                                    {project.period}
+                                    {`${project.startMonth} ${project.startYear} - ${project.endMonth} ${project.endYear}`}
                                 </span>
                             </div>
 

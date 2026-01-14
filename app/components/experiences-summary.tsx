@@ -1,11 +1,22 @@
-import { getProjectsSummary } from 'app/experience/utils'
-import Link from 'next/link'
+import { getProjectsSummary } from 'app/experience/utils';
+import Link from 'next/link';
 
 export function ExperienceSummary() {
-  const projectSummary = getProjectsSummary().map((project) => ({
-    ...project,
-    period: project.period.replace(' - ', ' • ')
-  }))
+  const projectSummary = getProjectsSummary()
+
+  // Group by Start Year
+  const groupedProjects: Record<string, typeof projectSummary> = {};
+
+  projectSummary.forEach(project => {
+    const year = project.startYear || 'Unknown';
+    if (!groupedProjects[year]) {
+      groupedProjects[year] = [];
+    }
+    groupedProjects[year].push(project);
+  });
+
+  // Sort years descending
+  const sortedYears = Object.keys(groupedProjects).sort((a, b) => Number(b) - Number(a));
 
   return (
     <section className='py-4'>
@@ -13,37 +24,49 @@ export function ExperienceSummary() {
         <h1 className="mb-3 text-xl font-bold tracking-tighter">
           Recent Experience ( {projectSummary.length} )
         </h1>
-        <Link href='/experience' className="mb-3 text-xl tracking-tighter transition-all text-blue-500 dark:text-blue-500 duration-300 hover:text-blue-600 hover:dark:text-blue-400 hover:underline flex align-middle relative py-1 cursor-pointer">
+        <Link href='/experience' className="mb-3 text-xl tracking-tighter transition-all text-blue-600 dark:text-blue-500 duration-300 hover:text-blue-600 hover:dark:text-blue-400 hover:underline flex align-middle relative py-1 cursor-pointer">
           See all experience
         </Link>
       </div>
 
       <div className="grid gap-6">
-        {projectSummary.map((project, index) => (
-          <Link href={`/experience#${project.section}`} key={index}>
-            <div
-              className="group relative flex flex-col p-5 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors duration-300"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                <div>
-                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors">
-                    {project.title}
-                  </h3>
-                  <div className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mt-1">
-                    {project.role} <span className="text-neutral-300 dark:text-neutral-700 mx-1">•</span> {project.client}
-                  </div>
-                </div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-500 tabular-nums whitespace-nowrap self-start sm:self-auto mt-1 sm:mt-0">
-                  {project.period}
-                </div>
-              </div>
-
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-3xl">
-                {project.description}
-              </p>
+        {sortedYears.map((year) => (
+          <div key={year}>
+            <h3 className="text-sm font-bold text-blue-600 dark:text-blue-500  mb-4 ">
+              {year}
+            </h3>
+            <div className="space-y-3">
+              {groupedProjects[year].map((project, idx) => {
+                return (
+                  <Link
+                    href={`/experience#${project.section}`}
+                    key={idx}
+                    className="group flex items-baseline gap-3 text-sm transition-opacity hover:opacity-70"
+                  >
+                    <span className="font-semibold text-neutral-900 dark:text-neutral-100 whitespace-nowrap">
+                      {project.title}
+                    </span>
+                    <span className="hidden sm:inline text-neutral-400 dark:text-neutral-600">
+                      —
+                    </span>
+                    <span className="text-neutral-500 dark:text-neutral-500 truncate">
+                      {project.description}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
-          </Link>
+          </div>
         ))}
+      </div>
+
+      <div className="mt-12">
+        <Link
+          href='/experience'
+          className="text-sm text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 transition-colors flex items-center gap-2 group"
+        >
+          <span className="group-hover:translate-x-1 transition-transform">→</span> Show all experience ({projectSummary.length} projects)
+        </Link>
       </div>
     </section>
   )
