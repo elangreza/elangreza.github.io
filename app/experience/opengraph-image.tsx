@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 // Image metadata
-export const alt = 'Elang Reza | blog'
+export const alt = 'Elang Reza | experience'
 export const size = {
     width: 1200,
     height: 630,
@@ -29,7 +29,7 @@ export default async function Image() {
                     textAlign: 'center'
                 }}
             >
-                Elang Reza | blog
+                Elang Reza | experience
             </div>
         ),
         // ImageResponse options

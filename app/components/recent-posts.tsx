@@ -7,9 +7,8 @@ export function RecentPosts() {
   let allBlogs = getBlogPosts()
   let recentBlogs = allBlogs.slice(0, 3)
 
-
   return (
-    <div className='py-6'>
+    <section className='py-4'>
       <div className='flex items-center justify-between'>
         <h1 className="mb-3 text-xl font-bold tracking-tighter">
           Recent posts ( {allBlogs.length} )
@@ -43,6 +42,6 @@ export function RecentPosts() {
             </div>
           </Link>
         ))}
-    </div>
+    </section>
   )
 }
