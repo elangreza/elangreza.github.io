@@ -34,8 +34,8 @@ export default function Page() {
                     <Link href={`/experience#${project.section}`} id={project.section} key={index}>
                         <div className="border-b border-neutral-200 dark:border-neutral-800 pb-12 last:border-0">
                             <div className="flex flex-col md:flex-row justify-between items-start mb-4">
-                                <div>
-                                    <h2 className="text-xl font-bold tracking-tight">{project.title}</h2>
+                                <div className='text-sm'>
+                                    <h2 className="text-sm font-bold tracking-tight">{project.title}</h2>
                                     <p className="text-neutral-600 dark:text-neutral-400">{project.role} at <b className="font-bold text-neutral-800 dark:text-neutral-200">{project.client}</b></p>
                                 </div>
                                 <span className="text-sm text-neutral-500 dark:text-neutral-500 tabular-nums mt-2 md:mt-0">
@@ -43,7 +43,7 @@ export default function Page() {
                                 </span>
                             </div>
 
-                            <p className="mb-4 text-neutral-800 dark:text-neutral-200">
+                            <p className="text-sm mb-4 text-neutral-800 dark:text-neutral-200">
                                 {project.description}
                             </p>
 

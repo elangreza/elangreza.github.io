@@ -4,7 +4,7 @@ export function Hero() {
             <h1 className="text-center my-16 text-2xl font-light tracking-tighter">
                 Hi, I'm Muhammad <b className='font-extrabold text-blue-400 dark:text-blue-500'>Reza</b> Elang Erlangga.
             </h1>
-            <p className="mb-4">
+            <p className="mb-4 text-sm">
                 Software Engineer with
                 {" "}<b>
                     5+ years of professional experience

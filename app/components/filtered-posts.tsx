@@ -41,11 +41,11 @@ export function FilteredPosts({
     }
 
     return (
-        <div>
-            <div className="flex flex-wrap gap-2 mb-8">
+        <section>
+            <div className="flex flex-wrap gap-2 mb-8 text-sm">
                 <Link
                     href="/blog"
-                    className={twMerge(`px-3 py-1 rounded-full text-sm transition-colors`, selectedTags.length === 0
+                    className={twMerge(`px-3 py-1 rounded-full  transition-colors`, selectedTags.length === 0
                         ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
                         : 'bg-gray-100 text-gray-900 dark:bg-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700')}
                 >
@@ -60,7 +60,7 @@ export function FilteredPosts({
                         <Link
                             key={tag}
                             href={href}
-                            className={twMerge(`px-3 py-1 rounded-full text-sm transition-colors`, isActive
+                            className={twMerge(`px-3 py-1 rounded-full  transition-colors`, isActive
                                 ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
                                 : 'bg-gray-100 text-gray-900 dark:bg-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700')}
                         >
@@ -104,6 +104,6 @@ export function FilteredPosts({
             {filteredPosts.length === 0 && (
                 <p className="text-neutral-600 dark:text-neutral-400">No posts found.</p>
             )}
-        </div>
+        </section>
     )
 }
