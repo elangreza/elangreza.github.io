@@ -8,22 +8,30 @@
 }
 
 :root {
-  --sh-class: #2d5e9d;
-  --sh-identifier: #354150;
-  --sh-sign: #8996a3;
-  --sh-string: #007f7a;
-  --sh-keyword: #e02518;
-  --sh-comment: #a19595;
-  --sh-jsxliterals: #6266d1;
-  --sh-property: #e25a1c;
-  --sh-entity: #e25a1c;
+  --sh-class: #0369a1;
+  --sh-identifier: #0f172a;
+  --sh-sign: #475569;
+  --sh-string: #0d9488;
+  --sh-keyword: #be123c;
+  --sh-comment: #94a3b8;
+  --sh-jsxliterals: #4f46e5;
+  --sh-property: #7c3aed;
+  --sh-entity: #7c3aed;
+  --code-bg: #f8fafc;
+  --code-border: #e2e8f0;
 }
 
 .dark {
-  --sh-class: #4c97f8;
-  --sh-identifier: white;
-  --sh-keyword: #f47067;
-  --sh-string: #0fa295;
+  --sh-class: #7dd3fc;
+  --sh-identifier: #f1f5f9;
+  --sh-keyword: #fb7185;
+  --sh-string: #2dd4bf;
+  --sh-sign: #94a3b8;
+  --sh-comment: #64748b;
+  --sh-property: #c084fc;
+  --sh-entity: #c084fc;
+  --code-bg: #0c0a09;
+  --code-border: #1c1917;
   color-scheme: dark;
 }
 
@@ -131,17 +139,20 @@ html.dark .text-neutral-200 {
 }
 
 .prose pre {
-  @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-base;
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  @apply rounded-xl overflow-x-auto py-4 px-5 text-[13px] mt-8 mb-6 shadow-sm;
 }
 
 .prose code {
-  @apply px-1 py-0.5 rounded-lg;
+  @apply px-1.5 py-0.5 rounded-md font-mono font-medium;
+  font-size: 0.9em;
 }
 
 .prose pre code {
-  @apply p-0;
-  border: initial;
-  line-height: 1.5;
+  @apply p-0 bg-transparent border-none;
+  line-height: 1.7;
+  font-size: inherit;
 }
 
 .prose code span {
