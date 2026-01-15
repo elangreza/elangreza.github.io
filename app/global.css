@@ -33,7 +33,6 @@ html {
   background-color: white;
   color: black;
 }
- 
 
 /* Neutral text colors for light mode */
 html .text-neutral-600 {
@@ -61,7 +60,7 @@ html.dark {
   background-color: black;
   color: white;
 }
- 
+
 /* Neutral text colors for dark mode */
 html.dark .text-neutral-600 {
   color: #d4d4d4;
@@ -249,11 +248,31 @@ input[type="email"] {
   appearance: none;
 }
 
-table {
-  display: block;
-  max-width: fit-content;
-  overflow-x: auto;
-  white-space: nowrap;
+.prose table {
+  @apply w-full border-collapse text-sm my-6;
+  display: table; /* Reset from display: block if it was set */
+}
+
+.prose th {
+  @apply border-b border-neutral-200 dark:border-neutral-800 text-left font-semibold py-2 px-4;
+  color: #171717;
+}
+
+html.dark .prose th {
+  color: #f5f5f5;
+}
+
+.prose td {
+  @apply border-b border-neutral-100 dark:border-neutral-900 py-2 px-4;
+  color: #262626;
+}
+
+html.dark .prose td {
+  color: #e5e5e5;
+}
+
+.prose tr:hover {
+  @apply bg-neutral-50/50 dark:bg-neutral-900/50;
 }
 
 .title {
