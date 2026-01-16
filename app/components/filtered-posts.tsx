@@ -41,8 +41,8 @@ export function FilteredPosts({
     }
 
     return (
-        <section>
-            <div className="flex flex-wrap gap-2 mb-8 text-sm">
+        <section className='text-sm'>
+            <div className="flex flex-wrap gap-2 mb-8">
                 <Link
                     href="/blog"
                     className={twMerge(`px-3 py-1 rounded-full  transition-colors`, selectedTags.length === 0
