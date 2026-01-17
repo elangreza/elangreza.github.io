@@ -1,13 +1,24 @@
+"use client"
+
 import { formatDate } from 'app/blog/date-utils'
-import { getBlogPosts } from 'app/blog/utils'
+import { Metadata } from 'app/blog/utils'
+import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 
 // TODO add a show more and show less if more than 7 posts
 
-export function RecentPosts() {
-  // only three latest posts
-  let allBlogs = getBlogPosts()
-  let recentBlogs = allBlogs.slice(0, 3)
+interface propsType {
+  allBlogs: {
+    metadata: Metadata;
+    slug: string;
+    content: string;
+  }[]
+  maxShowMore: number
+}
+
+export function RecentPosts({ allBlogs, maxShowMore = 7 }: propsType) {
+  const [openShowMore, setOpenShowMore] = useState(false)
 
   return (
     <section className='py-4'>
@@ -21,7 +32,7 @@ export function RecentPosts() {
       </div>
 
       <div className="grid gap-1 text-sm">
-        {recentBlogs
+        {allBlogs
           .sort((a, b) => {
             if (
               new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)
@@ -30,6 +41,7 @@ export function RecentPosts() {
             }
             return 1
           })
+          .slice(0, openShowMore ? allBlogs.length : maxShowMore)
           .map((post) => (
             <Link
               key={post.slug}
@@ -46,6 +58,29 @@ export function RecentPosts() {
               </div>
             </Link>
           ))}
+
+        <div className="mt-3 flex items-center justify-between">
+          <section className='flex items-center gap-2 text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 transition-colors group'>
+            {allBlogs.length > maxShowMore && (openShowMore ?
+              <ArrowUpIcon className='group-hover:-translate-y-1 transition-transform' size={16} /> :
+              <ArrowDownIcon className='group-hover:translate-y-1 transition-transform' size={16} />)}
+            {" "}
+            {allBlogs.length > maxShowMore && (openShowMore ?
+              <button onClick={() => setOpenShowMore(false)} className='cursor-pointer'>
+                Show less
+              </button> :
+              <button onClick={() => setOpenShowMore(true)} className='cursor-pointer'>
+                Show ({allBlogs.length - maxShowMore}) more posts
+              </button>
+            )}
+          </section>
+          <Link
+            href='/experience'
+            className=" text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 transition-colors flex items-center gap-2 group"
+          >
+            <ArrowRightIcon className='group-hover:translate-x-1 transition-transform' size={16} />{" "}Show all ({allBlogs.length} blog posts)
+          </Link>
+        </div>
       </div>
     </section>
   )
