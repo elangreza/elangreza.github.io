@@ -1,22 +1,98 @@
 ---
-title: "Creating Reliable Sequence Generator in GO"
+title: "Creating Reliable Sequence Generator"
 publishedAt: "2026-01-18T08:00:00+07:00"
-summary: "Creating Reliable Sequence Generator in GO"
+summary: "Creating Reliable Sequence Generator"
 active: false
 tags: go
 ---
 
-A sequence is an ordered arrangement of items, events, or numbers where the order is crucial.
+In microservices, you often need unique, ordered IDs that survive crashes. The challenge: if your sequence service goes down, it must recover exactly where it left off—not restart from zero.
 
-when creating a sequence in the microservice world, we want to get a instant result, and reliable and ordered sequence.
+In this post, we'll build a reliable sequence generator that handles this gracefully. We'll cover:
 
-if the result service is terminated or crashed, we want to recover the last sequence, so it doesn't start over from the start.
+- Application in Go: using channels and go-routines for instant, concurrent-safe sequence generation
+- SQLite3: persisting sequence values for crash recovery
+- A Go server exposing the sequence endpoint using gorilla mux
+- Unit and e2e tests to verify reliability
 
-so we will built an application or a service with this specs
+## Let's get started
 
-- application in go language, we will use a channel and go routine for get instant sequence, and preserving a next sequence value
-- sqlite3, to save a sequence value, and restore a sequence value if the application is restarted or crashed
-- go server for getting an sequence
-- we test it through unit test and e2e test
+### first step Choosing and Creating simple generator in Go
 
-## Summary
+we will create the easy example, we will use odd numbers only.
+
+the output will look like this:
+
+```
+1, 3, 5, 7, 9, ...
+```
+
+so we created the simple function `NextOdd`. The input is the last sequence, and add it with 2 so it's get the next odd number.
+
+```go
+func NextOdd(lastSeq int) int {
+    return lastSeq + 2
+}
+```
+
+and we create the sequence generator with FOC (first order function) style, so we get reserved next value
+
+```go
+func SequenceOdd() func() int {
+    lastSeq := 0
+    return func() int {
+        lastSeq = NextOdd(lastSeq)
+        return lastSeq
+    }
+}
+```
+
+and we grow the function with channel so we can reserve the value earlier. The channel itself have a blocking behavior so the response will be return exactly when we called the FOC function
+
+```go
+func SequenceOdd() func() int {
+	lastSeq := 1
+
+    // create unbuffered channel
+	reservedInt := make(chan int)
+
+    // spawn a go-routine
+	go func() {
+		for {
+            // calculate next odd value
+			reserved := NextOdd(lastSeq)
+
+            // save a reserved value to channel
+            // and the value will be block until the value FOC function is called
+			reservedInt <- reserved
+
+            // update the last sequence with the old reserved value, after FOC function is called
+			lastSeq = reserved
+		}
+	}()
+
+	return func() int {
+		return <-reservedInt
+	}
+}
+```
+
+in the code above we use unbuffered channel to reserve a next sequence see `make(chan int)`
+
+and we spawn a go routine and reserve the next value in the channel `reservedInt <- reserved`
+
+we can get the next value with using `<-reservedInt`
+
+and the `lastSeq` will be updated with the reserved value `lastSeq = reserved`
+
+```go
+import "fmt"
+
+func main() {
+    seq := SequenceOdd()
+    fmt.Println(seq()) // will print 3 since we set the last sequence is 1
+    fmt.Println(seq()) // will print 5
+    fmt.Println(seq()) // will print 7
+}
+
+```
