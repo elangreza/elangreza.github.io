@@ -1,33 +1,29 @@
 ---
-title: "Creating Reliable Sequence Generator"
+title: "Building a Reliable Sequence Generator in Go"
 publishedAt: "2026-01-18T08:00:00+07:00"
-summary: "Creating Reliable Sequence Generator"
-active: false
+summary: "How I built a crash-resilient, concurrent-safe sequence generator using Go, channels, and SQLite for microservices."
+active: true
 tags: go
 ---
 
-In microservices, you often need unique, ordered IDs that survive crashes. The challenge: if your sequence service goes down, it must recover exactly where it left off—not restart from zero.
+When you're working with microservices, generating unique, ordered IDs that survive crashes is a surprisingly tricky problem. If your sequence service goes down, you can’t just restart from zero—you need to pick up _exactly_ where you left off. Otherwise, you risk duplicate or out-of-order IDs, which can break data integrity.
 
-In this post, we'll build a reliable sequence generator that handles this gracefully. We'll cover:
+I recently tackled this challenge and built a reliable sequence generator in Go. In this post, I’ll walk you through my approach—step by step—including how I used:
 
-- Application in Go: using channels and go-routines for instant, concurrent-safe sequence generation
-- SQLite3: persisting sequence values for crash recovery
-- A Go server exposing the sequence endpoint using gorilla mux
-- Unit and e2e tests to verify reliability
+- **Go routines and channels** for safe, concurrent sequence generation
+- **SQLite** to persist the last-used value for crash recovery
+- A lightweight **HTTP server** (with Gorilla Mux) to expose the sequence
+- **Unit and end-to-end tests** to verify correctness under failure
 
-## Let's get started
+But first, let’s start simple.
 
-### first step Choosing and Creating simple generator in Go
+---
 
-we will create the easy example, we will use odd numbers only.
+## Step 1: A Basic Sequence Generator (Odd Numbers Only)
 
-the output will look like this:
+To keep things focused, I decided to generate only **odd numbers**: `1, 3, 5, 7, 9, ...`
 
-```
-1, 3, 5, 7, 9, ...
-```
-
-so we created the simple function `NextOdd`. The input is the last sequence, and add it with 2 so it's get the next odd number.
+I began with a tiny helper function that takes the last sequence number and returns the next odd one:
 
 ```go
 func NextOdd(lastSeq int) int {
@@ -35,7 +31,7 @@ func NextOdd(lastSeq int) int {
 }
 ```
 
-and we create the sequence generator with FOC (first order function) style, so we get reserved next value
+Then, I wrapped this logic into a **closure**—a function that returns another function. This lets me encapsulate the internal state (`lastSeq`) without exposing it:
 
 ```go
 func SequenceOdd() func() int {
@@ -47,52 +43,207 @@ func SequenceOdd() func() int {
 }
 ```
 
-and we grow the function with channel so we can reserve the value earlier. The channel itself have a blocking behavior so the response will be return exactly when we called the FOC function
+This works fine for single-threaded use, but it’s not safe for concurrent access—and it doesn’t precompute the next value. So I took it a step further.
+
+---
+
+## Step 2: Adding Concurrency Safety with Channels
+
+I wanted the generator to be both **concurrent-safe** and **responsive**. My solution? Use an **unbuffered channel** and a background goroutine to precompute the next sequence value.
+
+Here’s how it works:
+
+- A goroutine continuously calculates the next odd number.
+- It sends that value into a channel—but **blocks** until someone reads from it.
+- When the caller invokes the returned function, it immediately receives the precomputed value.
+- Only then does the generator update its internal state.
+
+This ensures:
+
+- No race conditions (thanks to channel synchronization)
+- Zero allocation overhead on the hot path
+- Exact resumption after any operation
+
+Here’s the full implementation:
 
 ```go
 func SequenceOdd() func() int {
-	lastSeq := 1
+    lastSeq := 1 // Start at 1 so the first call returns 3
 
-    // create unbuffered channel
-	reservedInt := make(chan int)
+    reservedInt := make(chan int) // Unbuffered channel
 
-    // spawn a go-routine
-	go func() {
-		for {
-            // calculate next odd value
-			reserved := NextOdd(lastSeq)
+    go func() {
+        for {
+            reserved := NextOdd(lastSeq)
+            reservedInt <- reserved   // Block until consumed
+            lastSeq = reserved        // Update only after consumption
+        }
+    }()
 
-            // save a reserved value to channel
-            // and the value will be block until the value FOC function is called
-			reservedInt <- reserved
-
-            // update the last sequence with the old reserved value, after FOC function is called
-			lastSeq = reserved
-		}
-	}()
-
-	return func() int {
-		return <-reservedInt
-	}
+    return func() int {
+        return <-reservedInt
+    }
 }
 ```
 
-in the code above we use unbuffered channel to reserve a next sequence see `make(chan int)`
-
-and we spawn a go routine and reserve the next value in the channel `reservedInt <- reserved`
-
-we can get the next value with using `<-reservedInt`
-
-and the `lastSeq` will be updated with the reserved value `lastSeq = reserved`
+Let’s test it:
 
 ```go
 import "fmt"
 
 func main() {
     seq := SequenceOdd()
-    fmt.Println(seq()) // will print 3 since we set the last sequence is 1
-    fmt.Println(seq()) // will print 5
-    fmt.Println(seq()) // will print 7
+    fmt.Println(seq()) // 3
+    fmt.Println(seq()) // 5
+    fmt.Println(seq()) // 7
+}
+```
+
+---
+
+## Step 3: Adding persistent store into the sequence generator
+
+for saving the state of sequence we need a persistence store, I choose sqlite3 for internal storage.
+
+The pros for the sqlite3 are:
+
+- The file is stored alongside your app, There's no external connection and no extra layer
+- It's very lightweight and easy to setup, copy, or backup the DB
+- It's very Easier to test locally
+
+let's setup up simple sqlite3 instance
+
+```go
+func setupDB() (*sql.DB, error) {
+    db, err := sql.Open("sqlite3", "./seq.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+    err = db.Ping()
+    if err != nil {
+        return nil, err
+    }
+
+    sqlStmt := `CREATE TABLE IF NOT EXISTS odd_sequence (
+        id INTEGER PRIMARY KEY,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );`
+
+    _, err = db.Exec(sqlStmt)
+    if err != nil {
+        return nil, err
+    }
+
+    return db, nil
 }
 
 ```
+
+The db `seq.db` will be created and table `odd_sequence` will be created if not exists.
+
+And then we save the last sequence when sequence is consumed:
+
+```go
+func SequenceOdd(db *sql.DB) (func() int) {
+    lastSeq := 1 // Start at 1 so the first call returns 3
+
+    reservedInt := make(chan int) // Unbuffered channel
+
+    go func() {
+        for {
+            reserved := NextOdd(lastSeq)
+            reservedInt <- reserved   // Block until consumed
+            lastSeq = reserved        // Update only after consumption
+            _, err := db.Exec("INSERT INTO odd_sequence (id) VALUES (?)", reserved)
+            if err != nil {
+                log.Fatal(err)
+            }
+        }
+    }()
+
+    return func() int {
+        return <-reservedInt
+    }
+}
+```
+
+and then we want to check the sequence from the table if only the application is restarted or crashed
+
+```go
+func SequenceOdd(db *sql.DB) (func() int) {
+    lastSeq := 1 // Start at 1 so the first call returns 3
+
+    // we checked the last sequence from the table. If it exists update the lastSeq
+    if err := db.QueryRow("SELECT id FROM odd_sequence ORDER BY created_at DESC LIMIT 1").Scan(&lastSeq); err != nil {
+        if err != sql.ErrNoRows {
+            log.Fatal(err)
+        }
+    }
+
+
+    reservedInt := make(chan int) // Unbuffered channel
+
+    go func() {
+        for {
+            reserved := NextOdd(lastSeq)
+            reservedInt <- reserved   // Block until consumed
+            lastSeq = reserved        // Update only after consumption
+
+            // we save into the DB the last sequence consumed
+            _, err := db.Exec("INSERT INTO odd_sequence (id) VALUES (?)", reserved)
+            if err != nil {
+                log.Fatal(err)
+            }
+        }
+    }()
+
+    return func() int {
+        return <-reservedInt
+    }
+}
+```
+
+and then update the main function
+
+```go
+// main.go
+func main() {
+    db, err := setupDB()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
+
+    seq := SequenceOdd(db)
+    fmt.Println(seq()) // 3
+    fmt.Println(seq()) // 5
+    fmt.Println(seq()) // 7
+}
+```
+
+and run the application
+
+```sh
+go run main.go
+
+// the output will be
+3
+5
+7
+```
+
+if we run the application for second time we will get the updated result with
+
+```sh
+go run main.go
+
+// the output will be
+9
+11
+13
+```
+
+since the the generated ID is stored in the sqlite3 db. and we continued the last sequence and so on.
+
+---
