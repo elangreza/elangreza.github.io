@@ -1,0 +1,22 @@
+---
+title: "Creating Reliable Sequence Generator in GO"
+publishedAt: "2026-01-18T08:00:00+07:00"
+summary: "Creating Reliable Sequence Generator in GO"
+active: false
+tags: go
+---
+
+A sequence is an ordered arrangement of items, events, or numbers where the order is crucial.
+
+when creating a sequence in the microservice world, we want to get a instant result, and reliable and ordered sequence.
+
+if the result service is terminated or crashed, we want to recover the last sequence, so it doesn't start over from the start.
+
+so we will built an application or a service with this specs
+
+- application in go language, we will use a channel and go routine for get instant sequence, and preserving a next sequence value
+- sqlite3, to save a sequence value, and restore a sequence value if the application is restarted or crashed
+- go server for getting an sequence
+- we test it through unit test and e2e test
+
+## Summary
