@@ -1,0 +1,555 @@
+---
+title: "Backend Engineer Take-Home Assignment Y-ventures"
+publishedAt: "2026-01-20T09:00:00"
+summary: "Backend Engineer Take-Home Assignment"
+active: "true"
+tags: take-home-test
+showOnList: "false"
+---
+
+Hi, my name is Muhammad Reza Elang Erlangga here's my email [mrezaelange@gmail.com](mailto:mrezaelange@gmail.com) , I've created this test to answer the Take home test Y-Ventures
+
+
+# Backend Engineer Take-Home Assignment
+
+## Code Test 0 — Fundamentals (Must BeCompleted First)
+⏱ Expected time: 30–45 minutes
+You are given a list of counter operations produced by multiple services.
+Although the system is described as concurrent, all operations in this task must be processed
+sequentially.
+Input
+You will receive a JSON array of operations:
+```json
+[
+  {
+    "op_id": "op_001",
+    "type": "increment",
+    "value": 5,
+    "occurred_at": "2025-01-01T10:00:00Z"
+  },
+  {
+    "op_id": "op_002",
+    "type": "decrement",
+    "value": 2,
+    "occurred_at": "2025-01-01T09:00:00Z"
+  },
+  {
+    "op_id": "op_001",
+    "type": "increment",
+    "value": 5,
+    "occurred_at": "2025-01-01T10:00:00Z"
+  },
+  {
+    "op_id": "op_003",
+    "type": "increment",
+    "value": 1,
+    "occurred_at": "2025-01-01T11:00:00Z"
+  }
+]
+```
+Operation Types
+- Increment
+- Decrement
+Rules
+1. Operations may arrive out of order
+2. Duplicate op_id must be ignored
+3. Operations must be applied in ascending order of occurred_at
+4. Processing is single-threaded
+5. Output must be deterministic
+Task
+Write a function/program that processes the input array and returns:
+```json
+{
+  "final_value": 4
+}
+```
+Requirements
+- In-memory only
+- No external libraries
+- No concurrency primitives
+- Use Go (preferred) or Node.js
+
+_**my answer**_
+
+```go
+  package main
+
+  import (
+    "encoding/json"
+    "log"
+    "sort"
+    "time"
+  )
+  
+  func main() {
+    req := `[
+  {
+  "op_id": "op_001",
+  "type": "increment",
+  "value": 5,
+  "occurred_at": "2025-01-01T10:00:00Z"
+  },
+  {
+  "op_id": "op_002",
+  "type": "decrement",
+  "value": 2,
+  "occurred_at": "2025-01-01T09:00:00Z"
+  },
+  {
+  "op_id": "op_001",
+  "type": "increment",
+  "value": 5,
+  "occurred_at": "2025-01-01T10:00:00Z"
+  },
+  {
+  "op_id": "op_003",
+  "type": "increment",
+  "value": 1,
+  "occurred_at": "2025-01-01T11:00:00Z"
+  }
+  ]`
+
+    resp, err := SequenceCalculator(req)
+    if err != nil {
+      log.Fatal(err)
+    }
+    log.Println(resp)
+  }
+
+  type (
+    Input []InputElement
+
+    InputElement struct {
+      OpID       string    `json:"op_id"`
+      Type       string    `json:"type"`
+      Value      int64     `json:"value"`
+      OccurredAt time.Time `json:"occurred_at"`
+    }
+  )
+
+  func SequenceCalculator(req string) (string, error) {
+    var input Input
+    err := json.Unmarshal([]byte(req), &input)
+    if err != nil {
+      return "", err
+    }
+
+    sort.Slice(input, func(i, j int) bool {
+      return input[i].OccurredAt.Before(input[j].OccurredAt)
+    })
+
+    opIDMap := make(map[string]string)
+
+    finalValue := int64(0)
+    for _, v := range input {
+      if _, ok := opIDMap[v.OpID]; ok {
+        continue
+      }
+      opIDMap[v.OpID] = v.OpID
+      switch v.Type {
+      case "increment":
+        finalValue += v.Value
+      case "decrement":
+        finalValue -= v.Value
+      }
+    }
+
+    resp, err := json.Marshal(map[string]int64{"final_value": finalValue})
+    if err != nil {
+      return "", err
+    }
+    return string(resp), nil
+  }
+
+```
+
+and if we run the main.go
+
+```bash
+reza@banyil:~/Desktop/y-ventures/q0$ go run main.go
+2026/01/20 21:01:56 {"final_value":4}
+```
+
+
+# Essay Questions
+
+## Essay Question 1 — Data & System Design
+
+Your company has two products:
+
+1. Publisher SaaS Dashboard
+   Used by publishers to manage book metadata and view analytics (e.g., sales,
+   performance, and content insights).
+2. Student AI Study Tool
+   Used by students/college users to create study sets and learn (e.g., subjects, grades,
+   categories/subcategories, study sets, notes, quizzes).
+   Goal:
+   Sync data between the two products so that:
+   - Publishers can see which subjects / grades / study-set categories relate to their
+     books and how students engage with those topics.
+   - Students can receive recommended books related to their study subjects.
+
+Design a production-ready backend approach and describe:
+
+    1.  High-level architecture (components and boundaries)
+
+        _**my answer**_
+
+        I choose to create the arch based on minimal approach.
+        - Phase One (Not use any AI, if traffic is low / 10k users)
+          - Publisher Service
+            - manage books_metadata, publisher_analytics
+            - runs directly into client(web/mobile)
+            - communicate with taxonomy and student services via grpc calls
+          - Student Service
+            - manage study sets
+            - manage relationship score, not use any AI
+            - runs directly into client(web/mobile)
+            - communicate with taxonomy and student services via grpc calls
+          - Taxonomy Service
+            - separate entirely from student service and publisher service since the entity is separable, and used in both of another service / remove duplication code and logic
+            - manage taxonomy(category, subject, grade)
+            - runs internally using grpc
+          - Pubsub / Kafka
+            - emit event `PublishedBooks` used for creating the relationship score
+            - emit event `EngagementSummary` after getting the engagement event from student input the
+          - Key APIs:
+            | Name | Type | Function |
+            |------|------|--------|
+            | CRUD Books | REST API | Create/update book metadata |
+            | Publish Book | REST API | Validate + emit `BookPublished` event |
+            | `BookPublished` | Event | Sync book metadata to Student Service |
+            | `EngagementSummary` | Event | Send anonymized analytics to Publisher Service |
+        - Phase Two (With AI, will be answered in question 2) for this phase until DAU is not > 10k don't use any AI, it's to overkill to use AI/LLM
+          - AI recommendation Service
+            - add recommendation when user send the text input. The input is analyzed and creating the recommendation_score and will adjust the relationship id
+            - enhance the capability recommendation_score (using AI/LLM) and save it to the student service
+            - runs internally using grpc
+          - Key APIs:
+            | Name | Type | Function |
+            |------|------|--------| 
+            | `UnstructuredContentDetected` | Event | Student input the unstructured text instead of choosing raw subject or categories (phase 1) |
+            | `AITopicSuggestion` | Event | After getting the unstructured text, text will be examined via AI to get relevant recommendation |
+            | `RecommendationServed` | Event | recalculate the recommendation_score after getting from AI Service |
+
+    2.  (Bonus) Provide a simple architecture diagram.
+
+        _**my answer**_
+
+        we are assuming there is a mocked service that handled authorization and authentication for user. For example google auth.
+
+        phase 1 diagram (without AI):
+
+        ![phase 1 diagram](/y-ventures/phase1.png)
+
+
+        phase 2 diagram (with AI):
+
+        ![phase 2 diagram](/y-ventures/phase2.png)
+
+
+    3.  Canonical data model: how you represent
+
+
+        _**my answer**_
+
+
+        - Book catalog + publisher metadata
+
+          ```go
+          // Publisher, Book  is saved in publisher db
+          type Publisher struct {
+            ID            string   `json:"id"`
+            Title         string   `json:"title"`
+          }
+
+          type Book struct {
+            ID            string   `json:"id"`
+            ISBN          string   `json:"isbn"`
+            Title         string   `json:"title"`
+            PublisherID   string   `json:"publisher_id"`
+            SubjectID     string   `json:"subject_id"`     // validated via taxonomy service
+            GradeID       string   `json:"grade_id"`       // validated via taxonomy service
+            CategoryIDs   []string `json:"category_ids"`   // validated via taxonomy service
+          }
+          ```
+
+        - Subject/grade taxonomy + category/subcategory
+
+          ```go
+          // Subject, Grade, Category is saved in taxonomy db
+          type Subject struct {
+            ID string `json:"id"`
+            Name string `json:"name"`
+          }
+
+          type Grade struct {
+            ID string `json:"id"`
+            Name string `json:"name"`
+          }
+
+          type Category struct {
+            ID string `json:"id"`
+            Name string `json:"name"`
+            ParentID string `json:"parent_id"` // used for subcategory
+          }
+          ```
+
+        - Study sets + engagement events
+
+          ```go
+          // StudySets, EngagementEvents is saved in student db
+          type StudySets struct {
+            ID string `json:"id"`
+            UserID string `json:"user_id"`
+            SubjectID string `json:"subject_id"`
+            GradeID string `json:"grade_id"`
+            CategoryIDs []string `json:"category_ids"`
+          }
+
+          type EngagementEvents struct {
+            ID string `json:"id"`
+            StudySetsID string `json:"study_sets_id"`
+            Action string `json:"action"` // can be quizzes or notes
+            Timestamp time.Time `json:"timestamp"`
+          }
+          ```
+
+          Student can add study sets by filling subject or category via dropdown (web UI) 
+
+          After the input is selected the Student service look for the published books via subject and category.
+
+          Students can add `engagementEvent` and it will recalculate the `BookCategoryRelationship`
+
+        - Relationships between study topics and books
+
+          ```go
+          // BookCategoryRelationship in student db
+          type BookCategoryRelationship struct {
+            ID string `json:"id"`
+            BookID string `json:"book_id"`
+            CategoryID string `json:"category_id"`
+            RelationshipScore float64 `json:"relationship_score"`
+          }
+          ```
+          The `BookCategoryRelationship` is created when books is published. When the students have a engagement events, we recalculate the score and update into the publisher service using events `EngagementSummary`
+
+          Scoring logic calculation:
+          
+          ```go
+          score := 0.0
+          if studySet.SubjectID == book.SubjectID { score += 1.0 }
+          if contains(book.GradeIDs, studySet.GradeID) { score += 0.5 }
+          if deepCategoryMatch(studySet.CategoryIDs, book.CategoryIDs) { score += 0.3 }
+          ```
+
+    4.  Sync strategy between products
+
+
+        _**my answer**_
+
+
+        - What data is shared vs kept private
+
+          shared: book details, book metadata, book_category_relationship.
+
+          private: engagement data per user (notes or quizzes).
+
+        - Batch vs streaming vs hybrid and why
+
+          streaming events for both of event `BookPublished` and `EngagementSummary`
+
+          if to many process is created
+
+          batch events for `EngagementSummary` since can get the data every 1 hours, and send it if there any updated `BookCategoryRelationship`
+
+        - Idempotency, deduplication, and ordering considerations
+
+          Idempotency key is used for both of event `BookPublished` and `EngagementSummary`. Create a table for indempotency in publisher and student service.
+
+    5.  Recommendation approach
+
+
+        _**my answer**_
+
+
+        - Baseline deterministic approach (e.g., rules or mapping table)
+
+          using the taxonomy data and engagement data compute the relationship score.
+
+        - Optional ML/LLM-enhanced approach
+
+          ML/LLM is not used in phase 1. Assuming the DAU is less than 10K and the traffic is low. AI will be used in question 2.
+
+        - Cold start handling for new books or new topics
+
+          First create book data in publisher service. Second create the categories, subject and grade into Taxonomy using GRPC calls.
+
+    6.  Scalability & reliability
+
+
+        _**my answer**_
+
+
+        - Handling spikes, retries, partial failures
+
+          spikes: using horizontal auto scale in study, taxonomy and publisher service
+        
+          retries and partial failures:: isolate by kafka or another message queue, and add DLQ will retry the failed events
+
+        - Backfills and schema evolution
+
+          Backfills: reprocess the `BookPublished` events if the logic in student service is updated
+        
+          Schema Evolution: add the `recommendation_score` in student service 
+
+    7.  Observability & data quality
+
+        _**my answer**_
+
+
+        - Metrics, logs, traces, and data validation checks
+
+          metric: get percentage of successful event `BookPublished` and `EngagementSummary` 
+
+          validation: check basic books validation in publisher service. When building taxonomy assuming the category, subject is able to be UPSERT query, so whenever data is change, the service will be accepted new value
+
+
+## Essay Question 2 — AI & Backend Integration
+    Continuing from Essay Question 1, your platform uses AI to enrich and connect data between:
+        
+        - Publisher content (books, metadata, categories)
+        
+        - Student activity (subjects, grades, study sets, engagement)
+    
+    AI may be used for tasks such as:
+    
+        - Topic or subject normalization
+    
+        - Matching study topics to relevant books
+    
+        - Semantic search or recommendations
+    
+        - Content summarization or tagging
+    
+    Describe how you would design a production-ready AI integration by covering:
+    
+        1. Architecture & boundaries
+
+            _**my answer**_
+    
+            - Where AI services live relative to the core backend 
+
+              we created second phase, integrating the AI
+              
+              we created new service named: `AI Recommendation Service`, and triggered by free text input from student
+
+              see this arch 
+
+              ![phase 2 diagram](/y-ventures/phase2.png)
+
+              we added 3 events 
+
+                | Name | Type | Function | origin | consumer |
+                |------|------|--------|------|------|
+                | `UnstructuredContentDetected` | Event | Student input the unstructured text instead of choosing raw subject or categories (phase 1) | student svc | AI svc  
+                | `AITopicSuggestion` | Event | After getting the unstructured text, text will be examined via AI to get relevant recommendation | AI svc | student svc   
+                | `RecommendationServed` | Event | recalculate the recommendation_score after getting from AI Service | student svc | student svc (self re-consume)
+      
+            - Synchronous vs asynchronous AI workflows
+
+              all events will run asynchronous via kafka or pubsub
+      
+            - How AI outputs are stored, versioned, and reused
+            
+              in AI recommendation service will be cached in redis see diagrams
+
+              with key `hash(input+model_version)` and value based on the AI
+    
+        2. AI vs deterministic logic
+
+             _**my answer**_
+    
+            - Which problems should be solved with rules or mappings
+
+              in phase one using data from taxonomy service, we get real deterministic data
+      
+            - Which problems truly benefit from LLMs or embeddings
+
+              got the recommendation from free text input, and get relevant books by topics (still need taxonomy service to validate the output from AI)
+
+            - How you prevent over-reliance on AI
+
+                - start with examining actual data and business logic (calculation RelationshipScore) and AI must be use carefully, need several confidence level to use AI.
+
+                - A/B testing 
+    
+        3. Data flow & reliability
+
+             _**my answer**_
+    
+            - Handling retries, partial failures, and timeouts
+
+              can be handled with exponential backoff, and DLQ in kafka or pubsub
+      
+            - Idempotency and reprocessing strategies
+
+              each events must be contained with idempotency keys and emmitted_at
+      
+            - Backfills when prompts, models, or logic change
+
+              reprocess `EngagementEvents` with notes or quizzes when model is improved, re-run the `UnstructuredContentDetected` in batch 
+    
+        4. Cost, latency, and scalability
+
+             _**my answer**_
+    
+            - Techniques to control token usage and cost
+
+              limit usage per user and truncate the input does'nt take a long context
+      
+            - Caching, batching, or offline processing strategies
+
+              Catch in several days, up to 7 days. For offline just save it under local, and can be retry when service is ready. 
+      
+            - When to prefer precomputation over real-time inference
+            
+              The time when AI service is created between phase one and two, we got ton of data based on `EngagementEvents` event with manual input.  
+    
+        5. Observability & quality control
+
+            _**my answer**_
+    
+            - How you monitor AI correctness and drift
+
+              - using the logger and metrics for confidence distribution
+      
+            - Human-in-the-loop or fallback mechanisms
+
+              if the AI fails, use deterministic data / see the taxonomy service. or cancel out the event process
+      
+            - Metrics you would track in production
+
+                - AI cost per user
+
+                - The correctness of recommendation score
+    
+        6. Security & privacy considerations
+
+            _**my answer**_
+    
+            - Preventing data leakage to AI providers
+
+              Sanitize the input from sensitive data
+      
+            - Prompt and output sanitization
+
+              Escape token and sensitive data
+      
+            - Multi-tenant safety concerns
+
+              use self hosted cloud with custom LLM
+
+
+    You may assume any LLM provider or embedding model. Focus on design decisions,
+    trade-offs, and system robustness, not model internals.

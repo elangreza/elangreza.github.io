@@ -25,7 +25,7 @@ export const metadata = {
 }
 
 export default function Page() {
-  let allBlogs = getBlogPosts()
+  let allBlogs = getBlogPosts().filter(post => post.metadata.showOnList !== true)
   let allTags = getBlogPostTags()
 
   return (

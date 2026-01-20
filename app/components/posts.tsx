@@ -3,7 +3,7 @@ import { getBlogPosts } from 'app/blog/utils'
 import Link from 'next/link'
 
 export function BlogPosts() {
-  let allBlogs = getBlogPosts()
+  let allBlogs = getBlogPosts().filter(post => post.metadata.showOnList !== true)
 
   return (
     <div>

@@ -75,7 +75,7 @@ export function RecentPosts({ allBlogs, maxShowMore = 7 }: propsType) {
             )}
           </section>
           <Link
-            href='/experience'
+            href='/blog'
             className=" text-neutral-500 dark:text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-300 transition-colors flex items-center gap-2 group"
           >
             <ArrowRightIcon className='group-hover:translate-x-1 transition-transform' size={16} />{" "}Show all ({allBlogs.length} blog posts)

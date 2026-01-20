@@ -15,8 +15,12 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }) {
   const { slug } = await params
-  let post = getBlogPosts().find((post) => post.slug === slug)
+  let post = getBlogPosts().filter(post => post.metadata.showOnList !== true).find((post) => post.slug === slug)
   if (!post) {
+    return
+  }
+
+  if (post.metadata.showOnList != null && post.metadata.showOnList === false) {
     return
   }
 

@@ -8,6 +8,7 @@ export type Metadata = {
   image?: string
   tags?: string[]
   active: boolean
+  showOnList: boolean
 }
 
 export type Post = {
@@ -32,6 +33,8 @@ function parseFrontmatter(fileContent: string) {
       metadata[key.trim()] = value.split(',').map((tag) => tag.trim())
     } else if (key === 'active') {
       metadata[key.trim()] = value === 'true'
+    } else if (key === 'showOnList') {
+      metadata[key.trim()] = value === 'false'
     } else {
       metadata[key.trim()] = value
     }

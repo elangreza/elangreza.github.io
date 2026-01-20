@@ -5,7 +5,7 @@ import { RecentPosts } from "./components/recent-posts";
 import { getProjectsSummary } from "./experience/utils";
 
 export default function Page() {
-  let allBlogs = getBlogPosts()
+  let allBlogs = getBlogPosts().filter(post => post.metadata.showOnList !== true)
   let projectSummary = getProjectsSummary()
 
   return (
