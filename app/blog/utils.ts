@@ -83,6 +83,12 @@ function getMDXTags(dir) {
   let mdxFiles = getMDXFiles(dir)
   return mdxFiles.filter((file) => {
     let { metadata } = readMDXFile(path.join(dir, file))
+
+    console.log(metadata.showOnList !== undefined)
+    if (metadata.showOnList !== undefined && metadata.showOnList === true) {
+      return false
+    }
+
     return metadata.active || []
   }).map((file) => {
     let { metadata } = readMDXFile(path.join(dir, file))
