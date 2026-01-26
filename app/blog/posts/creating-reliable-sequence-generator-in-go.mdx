@@ -126,22 +126,26 @@ func setupDB() (*sql.DB, error) {
         return nil, fmt.Errorf("failed to ping database: %w", err)
     }
 
-    sqlStmt := `
-        CREATE TABLE IF NOT EXISTS odd_sequence (
-            id INTEGER PRIMARY KEY,
-            created_at INTEGER
-        );`
-
-	_, err = db.Exec(sqlStmt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create table: %w", err)
-	}
-
     return db, nil
 }
 ```
 
 > 🛑 **Note**: Make sure you’ve imported the SQLite driver (e.g., `_ "github.com/mattn/go-sqlite3"`).
+
+### creating the odd_sequence table if not exists
+
+```go
+_, err := db.Exec(`
+    CREATE TABLE IF NOT EXISTS odd_sequence (
+        id INTEGER PRIMARY KEY,
+        created_at INTEGER
+    );`)
+if err != nil {
+    return nil, fmt.Errorf("failed to ensure odd_sequence table: %w", err)
+}
+```
+
+we added to `IF NOT EXISTS` clause to ensure we don't make a `odd_sequence` table if the table is exist
 
 ### Loading the Last Sequence on Startup
 
@@ -176,19 +180,29 @@ Putting it all together:
 
 ```go
 func SequenceOdd(db *sql.DB) (func() int, error) {
-	lastSeq := 1
+    // Ensure the sequence table exists (we moved this here so setupDB only opens/pings)
+    _, err := db.Exec(`
+        CREATE TABLE IF NOT EXISTS odd_sequence (
+            id INTEGER PRIMARY KEY,
+            created_at INTEGER
+        );`)
+    if err != nil {
+        return nil, fmt.Errorf("failed to ensure odd_sequence table: %w", err)
+    }
 
-	// Load last sequence from DB
-	if err := db.QueryRow(`
+    lastSeq := 1
+
+    // Load last sequence from DB
+    if err := db.QueryRow(`
         SELECT id FROM odd_sequence
         ORDER BY created_at DESC
         LIMIT 1
     `).Scan(&lastSeq); err != nil {
-		if err != sql.ErrNoRows {
-			return nil, fmt.Errorf("failed to load last sequence: %w", err)
-		}
-		// If no rows, keep lastSeq = 1
-	}
+        if err != sql.ErrNoRows {
+            return nil, fmt.Errorf("failed to load last sequence: %w", err)
+        }
+        // If no rows, keep lastSeq = 1
+    }
 
 	reservedInt := make(chan int)
 
@@ -261,6 +275,8 @@ $ go run main.go
 
 It correctly resumes from where it left off—because the last used ID is stored in `seq.db`.
 
+---
+
 ## Step 4: Adding HTTP Server to accessing sequence
 
 let's add simple http server in the main
@@ -303,3 +319,9 @@ and you can test it via curl
 ```sh
 curl http://localhost:8080/sequence
 ```
+
+and now you get the reliable sequence generator 
+
+## summary
+
+
