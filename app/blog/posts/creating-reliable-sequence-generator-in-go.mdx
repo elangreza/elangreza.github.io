@@ -12,7 +12,7 @@ I recently took on this problem and built a reliable sequence generator in Go. I
 
 - **Go routines and channels** for safe, concurrent sequence generation
 - **SQLite** to persist the last-used value for crash recovery
-- A lightweight **HTTP server** (with Gorilla Mux) to expose the sequence
+- A lightweight **HTTP server** to expose the sequence
 - **Unit and end-to-end tests** to verify correctness under failure
 
 But first, let’s start simple.
@@ -155,7 +155,7 @@ if err := db.QueryRow(`
     LIMIT 1
 `).Scan(&lastSeq); err != nil {
     if err != sql.ErrNoRows {
-        log.Fatal("failed to load last sequence:", err)
+        return nil, fmt.Errorf("failed to load last sequence: %w", err)
     }
     // If no rows, keep lastSeq = 1
 }
@@ -175,24 +175,24 @@ if err != nil {
 Putting it all together:
 
 ```go
-func SequenceOdd(db *sql.DB) func() int {
-    lastSeq := 1
+func SequenceOdd(db *sql.DB) (func() int, error) {
+	lastSeq := 1
 
-    // Load last sequence from DB
-    if err := db.QueryRow(`
+	// Load last sequence from DB
+	if err := db.QueryRow(`
         SELECT id FROM odd_sequence
         ORDER BY created_at DESC
         LIMIT 1
     `).Scan(&lastSeq); err != nil {
-        if err != sql.ErrNoRows {
-            log.Fatal("failed to load last sequence:", err)
-        }
-        // If no rows, keep lastSeq = 1
-    }
+		if err != sql.ErrNoRows {
+			return nil, fmt.Errorf("failed to load last sequence: %w", err)
+		}
+		// If no rows, keep lastSeq = 1
+	}
 
-    reservedInt := make(chan int)
+	reservedInt := make(chan int)
 
-    go func() {
+	go func() {
 		for {
 			lastSeq = NextOdd(lastSeq)
 			// Persist the sequence
@@ -204,13 +204,13 @@ func SequenceOdd(db *sql.DB) func() int {
 		}
 	}()
 
-    return func() int {
-        return <-reservedInt
-    }
+	return func() int {
+		return <-reservedInt
+	}, nil
 }
 ```
 
-### Testing Crash Recovery
+### Testing Update main with a saved data in DB
 
 Here’s the updated `main` function:
 
@@ -230,7 +230,12 @@ func main() {
     }
     defer db.Close()
 
-    seq := SequenceOdd(db)
+    // initializing and getting the sequence from db
+    seq, err := SequenceOdd(db)
+    if err != nil {
+        log.Fatal(err)
+    }
+
     fmt.Println(seq())
     fmt.Println(seq())
     fmt.Println(seq())
@@ -244,7 +249,10 @@ $ go run main.go
 3
 5
 7
+```
 
+we run the program for the second time
+```
 $ go run main.go
 9
 11
@@ -252,3 +260,46 @@ $ go run main.go
 ```
 
 It correctly resumes from where it left off—because the last used ID is stored in `seq.db`.
+
+## Step 4: Adding HTTP Server to accessing sequence
+
+let's add simple http server in the main
+
+```go
+package main
+
+import (
+	"database/sql"
+	"fmt"
+    "log"
+    "net/http"
+	_ "github.com/mattn/go-sqlite3" 
+)
+
+func main() {
+    db, err := setupDB()
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close() 
+
+    seq, err := SequenceOdd(db)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // setup a get handler for /sequence endpoint
+    http.HandleFunc("/sequence", func(w http.ResponseWriter, r *http.Request) {
+        fmt.Fprintf(w, "%d", seq())
+    })
+
+    // running at server port 8080
+    log.Fatal(http.ListenAndServe(":8080", r))
+}
+```
+
+and you can test it via curl
+
+```sh
+curl http://localhost:8080/sequence
+```
