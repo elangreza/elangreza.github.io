@@ -13,7 +13,6 @@ I recently took on this problem and built a reliable sequence generator in Go. I
 - **Go routines and channels** for safe, concurrent sequence generation
 - **SQLite** to persist the last-used value for crash recovery
 - A lightweight **HTTP server** to expose the sequence
-- **Unit and end-to-end tests** to verify correctness under failure
 
 But first, let’s start simple.
 
@@ -266,7 +265,7 @@ $ go run main.go
 ```
 
 we run the program for the second time
-```
+```sh
 $ go run main.go
 9
 11
@@ -314,7 +313,7 @@ func main() {
 }
 ```
 
-and you can test it via curl
+and you can verify it via curl
 
 ```sh
 curl http://localhost:8080/sequence
@@ -322,6 +321,10 @@ curl http://localhost:8080/sequence
 
 and now you get the reliable sequence generator 
 
-## summary
+## Summary
+
+In this post we built a crash-resilient, concurrent-safe odd-number sequence generator in Go.
+
+And thank you for reading
 
 
