@@ -1,0 +1,162 @@
+---
+title: "How to solve add two numbers leetcode problem"
+publishedAt: "2026-02-05T06:54:37.946Z"
+summary: "How to solve add two numbers leetcode problem"
+active: "true"
+tags: leetcode,go
+---
+
+Here's the leetcode [#2 link](https://leetcode.com/problems/add-two-numbers/description//) for the problem.
+
+Okay, let's solve the problem, Start by analyzing the question:
+
+> 1. Add Two Numbers
+>
+> You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list. You may assume the two numbers do not contain any leading zero, except the number 0 itself.
+
+Examples:
+
+> Example 1:
+
+![example](/leetcode/add-two-numbers.png)
+
+> Input: l1 = [2,4,3], l2 = [5,6,4]
+> Output: [7,0,8]
+> Explanation: 342 + 465 = 807.
+
+> Example 2:
+>
+> Input: l1 = [0], l2 = [0]
+> Output: [0]
+
+> Example 3:
+>
+> Input: l1 = [9,9,9,9,9,9,9], l2 = [9,9,9,9]
+> Output: [8,9,9,9,0,0,0,1]
+
+
+Approach — using linked list with dummy head:
+
+- Use dummy head linkedList and the response will always be `head.Next`
+- Track the current iteration using current variable, since we don't want to modify the head linkedList. This approach is doable since the variable is using same reference / same pointer value
+- Calculate total from `l1.Val + l2.Val + carry`. Carry initialized with 0 value. The Carry value is changed when total is greater than 9 or can be received via `total / 10`, to get exact carry value.
+- Only modify and iterate with current Linklist node, dont use head node to iterate
+- update `L1 and L2` if only the `L1 and L2` is not Null
+
+let's deep dive to the code:
+
+
+```go
+package addtwonumbers
+
+type ListNode struct {
+    Val int
+    Next *ListNode
+}
+
+func addTwoNumbers(l1 *ListNode, l2 *ListNode) *ListNode {
+	dummyHead := &ListNode{}
+	// we want to set the current same as head. The return value is always be head.Next
+	current := dummyHead
+	carry := 0
+	// keep iterate the loop with l1 or l2 is available or carry is available
+	// we use the l1 or l2 directly to get value of each node
+	// wa use the carry > 0 to use the carry until last digit
+	for l1 != nil || l2 != nil || carry > 0 {
+		total := 0
+		if l1 != nil {
+			total += l1.Val
+			l1 = l1.Next
+		}
+		if l2 != nil {
+			total += l2.Val
+			l2 = l2.Next
+		}
+		// add total with carry
+		total += carry
+		// set the next value with total % 10
+		// let's say L1.Val is 7 l2.Val is 8, so the total will be 15
+		// the val will be total % 10 = 5
+		current.Next = &ListNode{Val: total % 10}
+		// the carry will be total / 10 = 1
+		// if the carry > 0  and l1 or l2 is nil, the iteration is keep going. This ensure the latest value is correct until the last number
+		carry = total / 10
+		// iterate the current to next, since we want to assign the value to next node
+		current = current.Next
+	}
+	return dummyHead.Next
+}
+```
+
+and let's add unit test for this, we'll be using table test driven approach.
+
+```go
+package addtwonumbers
+
+import (
+	"reflect"
+	"testing"
+)
+
+func Test_addTwoNumbers(t *testing.T) {
+	type args struct {
+		l1 *ListNode
+		l2 *ListNode
+	}
+	tests := []struct {
+		name string
+		args args
+		want *ListNode
+	}{
+		{
+			name: "first",
+			args: args{
+				l1: &ListNode{Val: 2, Next: &ListNode{Val: 4, Next: &ListNode{Val: 3}}},
+				l2: &ListNode{Val: 5, Next: &ListNode{Val: 6, Next: &ListNode{Val: 4}}},
+			},
+			want: &ListNode{Val: 7, Next: &ListNode{Val: 0, Next: &ListNode{Val: 8}}},
+		},
+		{
+			name: "second",
+			args: args{
+				l1: &ListNode{Val: 0},
+				l2: &ListNode{Val: 0},
+			},
+			want: &ListNode{Val: 0},
+		},
+		{
+			name: "third",
+			args: args{
+				l1: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9}}}}}}},
+				l2: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9}}}},
+			},
+			want: &ListNode{Val: 8, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 9, Next: &ListNode{Val: 0, Next: &ListNode{Val: 0, Next: &ListNode{Val: 0, Next: &ListNode{Val: 1}}}}}}}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := addTwoNumbers(tt.args.l1, tt.args.l2); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("addTwoNumbers() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+```
+
+And the test result will be
+
+```sh
+reza@banyil:~/Desktop/leetcode/2._Add_Two_Numbers$ go test . -v
+=== RUN   Test_addTwoNumbers
+=== RUN   Test_addTwoNumbers/first
+=== RUN   Test_addTwoNumbers/second
+=== RUN   Test_addTwoNumbers/third
+--- PASS: Test_addTwoNumbers (0.00s)
+    --- PASS: Test_addTwoNumbers/first (0.00s)
+    --- PASS: Test_addTwoNumbers/second (0.00s)
+    --- PASS: Test_addTwoNumbers/third (0.00s)
+PASS
+ok      github.com/elangreza14/leetcode/2._Add_Two_Numbers0.004s
+```
+
+All test is passed, and that's it, hope you found this helpful.
