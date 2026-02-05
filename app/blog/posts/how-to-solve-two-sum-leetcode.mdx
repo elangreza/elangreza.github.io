@@ -1,0 +1,71 @@
+---
+title: "How to solve two sum leetcode problem"
+publishedAt: "2026-02-05T06:54:37.946Z"
+summary: "How to solve two sum leetcode problem"
+active: "true"
+tags: leetcode,go
+---
+
+Okay let's solve the problem. Let's start with analyzing the question 
+
+> 1. Two Sum
+> Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+> You may assume that each input would have exactly one solution, and you may not use the same element twice.
+> You can return the answer in any order.
+
+and the example is 
+
+> Example 1:
+>
+> Input: nums = [2,7,11,15], target = 9
+> Output: [0,1]
+> Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+
+> Example 2:
+>
+> Input: nums = [3,2,4], target = 6
+> Output: [1,2]
+
+> Example 3:
+>
+> Input: nums = [3,3], target = 6
+> Output: [0,1]
+
+
+So we will be using the map / sets to store all information needed. With value as a keys and the index as value.
+
+```go
+func twoSum(nums []int, target int) []int {
+    set := make(map[int]int)
+    for i, num := range nums {
+        set[num] = i
+    }
+    return []int{}
+}
+```
+
+The code above is out base step to create to sum. Next we want to get cumulative value from keys and targeted value.
+
+> we will keep track the targeted value with cumulative sum from keys and values so it will be tracked to get exactly two result 
+
+```go
+func twoSum(nums []int, target int) []int {
+    set := make(map[int]int)
+    for i, num := range nums {
+        // we track the targeted num with cumulative sum from keys and values
+        targetNum := target - num
+        // check if the targeted num is available in the map / set
+        if v, ok := set[targetNum]; ok {
+            // finally return the index if it is available
+            return []int{i, v}
+        }
+        set[num] = i
+    }
+
+    // we want the compiler is happy
+    // just return the empty slice
+    return []int{}
+}
+```
+
+And that's all for the explanation, hope you enjoyed
