@@ -1,0 +1,175 @@
+---
+title: "How to solve longest substring without repeating characters problem"
+publishedAt: "2026-02-06T04:23:14.138Z"
+summary: "How to solve longest substring without repeating characters problem"
+active: "true"
+tags: leetcode,go
+---
+
+Here's the leetcode [#3 link](https://leetcode.com/problems/longest-substring-without-repeating-characters/description//) for the problem.
+
+Okay, let's solve the problem, Start by analyzing the question:
+
+> 3. Longest Substring Without Repeating Characters
+>
+> Given a string s, find the length of the longest without duplicate characters.
+
+Examples:
+
+> Example 1:
+>
+> Input: s = "abcabcbb"
+> Output: 3
+> Explanation: The answer is "abc", with the length of 3. Note that "bca" and "cab" are also correct answers.
+
+> Example 2:
+>
+> Input: s = "bbbbb"
+> Output: 1
+> Explanation: The answer is "b", with the length of 1.
+
+> Example 3:
+>
+> Input: s = "pwwkew"
+> Output: 3
+> Explanation: The answer is "wke", with the length of 3.
+> Notice that the answer must be a substring, "pwke" is a subsequence and not a substring.
+
+
+Approach — using linked list with dummy head:
+
+- Use sliding window approach
+- track start and end point
+- save substring with it's index, if repeated occurs, update the index, and update the start point with new 
+- calculate the maxLength with different from end and start point, and add 1 to include the initial value when both of start and end point is at the same position
+
+let's deep dive to the code:
+
+
+```go
+package lengthoflongestsubstring
+
+func lengthOfLongestSubstring(s string) int {
+	maxLength := 0
+	start := 0
+	// map is created to track the position of each char
+	// key is the char, and value is the index
+	m := make(map[rune]int)
+
+	for end, char := range s {
+		// 3. we want to check if repeated character is occurred
+		// we want to check char is available in the map
+		prevIndex, ok := m[char]
+		// 4. if the char is found
+		// we update the start position
+		if ok {
+			start = max(start, prevIndex+1)
+		}
+		// 1. calculate the maxLength condition
+		// this covered first iteration, since start and end is in the same position
+		// we want to get exactly one iteration
+		// let's say input is " " the result will always be 1
+		maxLength = max(maxLength, end-start+1)
+		// 2. second we want to save char in the map
+		// save char as key
+		// and save end value or index as a value
+		m[char] = end
+	}
+
+	return maxLength
+}
+```
+
+and let's add unit test for this, we'll be using table test driven approach.
+
+```go
+package lengthoflongestsubstring
+
+import "testing"
+
+func Test_lengthOfLongestSubstring(t *testing.T) {
+	tests := []struct {
+		name string
+		ss   string
+		want int
+	}{
+		{
+			name: "first",
+			ss:   "abcabcbb",
+			want: 3,
+		},
+		{
+			name: "second",
+			ss:   "bbbbb",
+			want: 1,
+		},
+		{
+			name: "third",
+			ss:   "pwwkew",
+			want: 3,
+		},
+		{
+			name: "fourth",
+			ss:   "bdb",
+			want: 2,
+		},
+		{
+			name: "fifth",
+			ss:   "dvdf",
+			want: 3,
+		},
+		{
+			name: "sixth",
+			ss:   "abba",
+			want: 2,
+		},
+		{
+			name: "seven",
+			ss:   " ",
+			want: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := lengthOfLongestSubstring(tt.ss)
+			t.Log(got)
+			if got != tt.want {
+				t.Errorf("lengthOfLongestSubstring() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+```
+
+And the test result will be
+
+```sh
+reza@banyil:~/Desktop/leetcode/3._Longest_Substring_Without_Repeating_Characters$ go test -v
+=== RUN   Test_lengthOfLongestSubstring
+=== RUN   Test_lengthOfLongestSubstring/first
+    3_test.go:51: 3
+=== RUN   Test_lengthOfLongestSubstring/second
+    3_test.go:51: 1
+=== RUN   Test_lengthOfLongestSubstring/third
+    3_test.go:51: 3
+=== RUN   Test_lengthOfLongestSubstring/fourth
+    3_test.go:51: 2
+=== RUN   Test_lengthOfLongestSubstring/fifth
+    3_test.go:51: 3
+=== RUN   Test_lengthOfLongestSubstring/sixth
+    3_test.go:51: 2
+=== RUN   Test_lengthOfLongestSubstring/seven
+    3_test.go:51: 1
+--- PASS: Test_lengthOfLongestSubstring (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/first (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/second (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/third (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/fourth (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/fifth (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/sixth (0.00s)
+    --- PASS: Test_lengthOfLongestSubstring/seven (0.00s)
+PASS
+ok      github.com/elangreza14/leetcode/3._Longest_Substring_Without_Repeating_Characters       0.003s
+```
+
+All test is passed, and that's it, hope you found this helpful.
