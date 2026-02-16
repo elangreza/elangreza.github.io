@@ -1,3 +1,4 @@
+import { GoogleTagManager } from '@next/third-parties/google'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
@@ -65,6 +66,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   return (
     <html
       lang="en"
@@ -75,6 +77,7 @@ export default function RootLayout({
         GeistMono.variable
       )}
     >
+      <GoogleTagManager gtmId={apiKey as string} />
       <body className="antialiased max-w-3xl mx-4 lg:mx-auto min-h-screen flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <main className="flex-grow min-w-0 mt-6 flex flex-col px-2 md:px-0">
